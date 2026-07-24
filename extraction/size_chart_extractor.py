@@ -1,30 +1,44 @@
+import os
 import re
+
 from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-
+from webdriver_manager.chrome import ChromeDriverManager
 
 def open_product(url):
     options = Options()
-    options.add_argument("--start-maximized")
 
-    from selenium.webdriver.chrome.service import Service
+    # Required for Streamlit Cloud
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument("--remote-debugging-port=9222")
+    options.add_argument("--disable-software-rasterizer")
 
-    service = Service("/usr/bin/chromedriver")
-    driver = webdriver.Chrome(service=service, options=options)
+    # Use the correct Chrome binary on Linux
+    if os.path.exists("/usr/bin/chromium"):
+        options.binary_location = "/usr/bin/chromium"
+
+    # Windows (local) vs Streamlit Cloud
+    if os.name == "nt":
+        from webdriver_manager.chrome import ChromeDriverManager
+        service = Service(ChromeDriverManager().install())
+    else:
+        service = Service("/usr/bin/chromedriver")
+
+    driver = webdriver.Chrome(
+        service=service,
+        options=options
+    )
+
     driver.get(url)
-
-    try:
-        driver.maximize_window()
-    except:
-        pass
-
     return driver
-
 
 def clean_and_parse_float(text):
     """
