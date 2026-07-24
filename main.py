@@ -1,14 +1,12 @@
+from extraction.size_chart_extractor import (
+    extract_fit,
+    extract_size_chart,
+    open_product,
+)
 import pandas as pd
 from utils.column_detector import detect_columns
 from utils.reference_size_chart import get_reference_sizes
 from verification.size_chart_verifier import compare_sizes
-# Consolidated imports from extraction module
-from extraction.size_chart_extractor import (
-    open_product,
-    extract_size_chart,
-    extract_fit,
-)
-
 
 # -----------------------------------
 # Report Path
@@ -60,26 +58,26 @@ def generate_report(df):
         print("Detected Product Type :", product_type)
         gender = ""
 
-# ----------------------------
-# Get Gender from Excel
-# ----------------------------
+        # ----------------------------
+        # Get Gender from Excel
+        # ----------------------------
 
-# Case 1: Dataset has a GENDER column
+        # Case 1: Dataset has a GENDER column
         if "GENDER" in columns and pd.notna(row[columns["GENDER"]]):
             gender = str(row[columns["GENDER"]]).strip().upper()
             print("Gender from GENDER column :", gender)
 
-# Case 2: Dataset has a LINE column
+        # Case 2: Dataset has a LINE column
         elif "LINE" in columns and pd.notna(row[columns["LINE"]]):
             line = str(row[columns["LINE"]]).strip().upper()
             print("LINE :", line)
 
-        if "WOMEN" in line:
-            gender = "WOMEN"
-        elif "MEN" in line:
-            gender = "MEN"
+            if "WOMEN" in line:
+                gender = "WOMEN"
+            elif "MEN" in line:
+                gender = "MEN"
 
-# Final fallback
+        # Final fallback
         if gender == "":
             gender = "MEN"
 
@@ -101,17 +99,19 @@ def generate_report(df):
 
             # Extract Size Chart
             extracted_sizes = extract_size_chart(driver, product_type)
+
+            # --- STEP 1: Debug Log for Extracted Sizes ---
+            print("Website Sizes:", extracted_sizes)
             print("Extracted Sizes :", extracted_sizes)
-            # -------------------------------
-    
-            
+
             reference = get_reference_sizes(
-            product_type,
-            gender,
-            fit,
-)
+                product_type,
+                gender,
+                fit,
+            )
 
             print("Reference :", reference)
+
             # ---------------------------------------
             # Out Of Stock
             # ---------------------------------------
@@ -135,8 +135,9 @@ def generate_report(df):
                 reference["SIZES"],
                 extracted_sizes,
             )
-
-            print("Comparison :", result)
+            print("Reference Sizes:", reference["SIZES"])
+            print("Website Sizes:", extracted_sizes)
+            print("Comparison:", result)
 
             # ---------------------------------------
             # Extracted Size Chart Column
@@ -146,9 +147,10 @@ def generate_report(df):
                 for size, value in extracted_sizes.items()
             )
             report_row["Reference Size Chart"] = ", ".join(
-               f"{size}-{value:g}"
-               for size, value in reference["SIZES"].items()
+                f"{size}-{value:g}"
+                for size, value in reference["SIZES"].items()
             )
+
             # ---------------------------------------
             # Final Verdict
             # Ignore NOT FOUND
