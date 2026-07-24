@@ -57,7 +57,20 @@ def generate_report(df):
             product_type = "TOPWEAR"
 
         print("Detected Product Type :", product_type)
+        gender = ""
+        
+        if "GENDER" in columns and pd.notna(row[columns["GENDER"]]):
+            gender = str(row[columns["GENDER"]]).strip().upper()
+            print("Gender from Excel :", gender)
+        else:
+            print("Gender column not found in Excel")
+        
+        # Temporary fallback
+        if gender == "":
+           gender = "MEN"
 
+        print("Using Gender :", gender)
+        print("RAW PRODUCT TYPE :", product_type)
         report_row = {
             "STYLE": row[columns["STYLE"]],
             "SUB CATEGORY": row[columns["SUBCATEGORY"]],
@@ -76,25 +89,8 @@ def generate_report(df):
             extracted_sizes = extract_size_chart(driver, product_type)
             print("Extracted Sizes :", extracted_sizes)
             # -------------------------------
-            # Get Gender
-# -------------------------------
-            gender = ""
-
-            if "GENDER" in columns and pd.notna(row[columns["GENDER"]]):
-                gender = str(row[columns["GENDER"]]).strip().upper()
-                print("Gender from Excel :", gender)
-            else:
-                print("Gender column not found in Excel")
-
-            # Temporary fallback
-            if product_type == "BOTTOMWEAR":
-                gender = "MEN"
-            else:
-                gender = "MEN"
-
-            print("Using Gender :", gender)
-            print("RAW PRODUCT TYPE :", product_type)
-
+    
+            
             reference = get_reference_sizes(
             product_type,
             gender,
