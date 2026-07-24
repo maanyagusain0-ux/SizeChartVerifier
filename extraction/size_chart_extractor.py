@@ -1,5 +1,6 @@
 import os
 import re
+import time 
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -38,6 +39,15 @@ def open_product(url):
     )
 
     driver.get(url)
+
+    WebDriverWait(driver, 20).until(
+    EC.presence_of_element_located((By.TAG_NAME, "body"))
+)
+
+    WebDriverWait(driver, 20).until(
+    lambda d: d.execute_script("return document.readyState") == "complete"
+)
+
     return driver
 
 def clean_and_parse_float(text):
@@ -128,11 +138,16 @@ def extract_size_chart(driver, product_type):
             element = WebDriverWait(driver, 3).until(
                 EC.element_to_be_clickable((By.XPATH, xpath))
             )
+            driver.execute_script("arguments[0].scrollIntoView({block:'center'});", element)
+            time.sleep(1)
             driver.execute_script("arguments[0].click();", element)
+            time.sleep(2)
             size_chart_found = True
             print("Size Chart Opened via explicit button")
             break
-        except:
+        except Exception as e:
+            print("❌ CLICK FAILED:", xpath)
+            print("ERROR:", e)
             continue
 
     # Fallback: Try general 'SIZE' elements if specific chart button wasn't found
@@ -171,13 +186,16 @@ def extract_size_chart(driver, product_type):
             pass
 
         print("Size Chart Not Found")
+        driver.save_screenshot("sizechart_error.png")
+
+        print(driver.page_source[:5000])
         return {}
 
     # ---------------------------------------
     # Wait for Table & Extract
     # ---------------------------------------
     try:
-        wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
+        wait.until(EC.visibility_of_element_located((By.TAG_NAME, "table")))
         table = driver.find_element(By.TAG_NAME, "table")
         rows = table.find_elements(By.TAG_NAME, "tr")
     except Exception as e:
