@@ -11,42 +11,63 @@ from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
 def open_product(url):
+    time.sleep(5)
+
+    print("=" * 80)
+    print("TITLE :", driver.title)
+    print("URL   :", driver.current_url)
+    print("=" * 80)
+
+    driver.save_screenshot("page_loaded.png")
     options = Options()
 
-    # Required for Streamlit Cloud
+    # Headless
     options.add_argument("--headless=new")
+
+    # Linux compatibility
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
+    options.add_argument("--disable-software-rasterizer")
     options.add_argument("--window-size=1920,1080")
     options.add_argument("--remote-debugging-port=9222")
-    options.add_argument("--disable-software-rasterizer")
 
-    # Use the correct Chrome binary on Linux
+    # Add these
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_argument("--disable-extensions")
+    options.add_argument("--disable-infobars")
+
+    options.add_argument(
+        "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/137.0.0.0 Safari/537.36"
+    )
+
     if os.path.exists("/usr/bin/chromium"):
         options.binary_location = "/usr/bin/chromium"
 
-    # Windows (local) vs Streamlit Cloud
     if os.name == "nt":
         from webdriver_manager.chrome import ChromeDriverManager
         service = Service(ChromeDriverManager().install())
     else:
         service = Service("/usr/bin/chromedriver")
 
-    driver = webdriver.Chrome(
-        service=service,
-        options=options
+    driver = webdriver.Chrome(service=service, options=options)
+
+    driver.execute_script(
+        "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
     )
 
     driver.get(url)
 
     WebDriverWait(driver, 20).until(
-    EC.presence_of_element_located((By.TAG_NAME, "body"))
-)
+        lambda d: d.execute_script("return document.readyState") == "complete"
+    )
 
-    WebDriverWait(driver, 20).until(
-    lambda d: d.execute_script("return document.readyState") == "complete"
-)
+    print("=" * 60)
+    print("TITLE :", driver.title)
+    print("URL   :", driver.current_url)
+    print("=" * 60)
 
     return driver
 

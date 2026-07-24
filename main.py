@@ -62,6 +62,7 @@ def generate_report(df):
             "STYLE": row[columns["STYLE"]],
             "SUB CATEGORY": row[columns["SUBCATEGORY"]],
             "LINK": row[columns["LINK"]],
+            "GENDER": gender,
         }
 
         try:
@@ -74,18 +75,33 @@ def generate_report(df):
             # Extract Size Chart
             extracted_sizes = extract_size_chart(driver, product_type)
             print("Extracted Sizes :", extracted_sizes)
+            # -------------------------------
+            # Get Gender
+# -------------------------------
+            gender = ""
 
-            print("RAW GENDER VALUE :", repr(row[columns["GENDER"]]))
+            if "GENDER" in columns and pd.notna(row[columns["GENDER"]]):
+                gender = str(row[columns["GENDER"]]).strip().upper()
+                print("Gender from Excel :", gender)
+            else:
+                print("Gender column not found in Excel")
+
+            # Temporary fallback
+            if product_type == "BOTTOMWEAR":
+                gender = "MEN"
+            else:
+                gender = "MEN"
+
+            print("Using Gender :", gender)
             print("RAW PRODUCT TYPE :", product_type)
 
             reference = get_reference_sizes(
-                product_type,
-                row[columns["GENDER"]],
-                fit,
-            )
+            product_type,
+            gender,
+            fit,
+)
 
             print("Reference :", reference)
-
             # ---------------------------------------
             # Out Of Stock
             # ---------------------------------------
