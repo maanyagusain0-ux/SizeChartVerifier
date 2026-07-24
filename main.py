@@ -61,7 +61,6 @@ def generate_report(df):
         report_row = {
             "STYLE": row[columns["STYLE"]],
             "SUB CATEGORY": row[columns["SUBCATEGORY"]],
-            "GENDER": row[columns["GENDER"]] if "GENDER" in columns else "",
             "LINK": row[columns["LINK"]],
         }
 
