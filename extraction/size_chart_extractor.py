@@ -134,9 +134,25 @@ def extract_fit(driver):
 
 
 def extract_size_chart(driver, product_type):
+    
     wait = WebDriverWait(driver, 8)
     size_chart_found = False
+    # -----------------------------
+# Check if product is out of stock
+# -----------------------------
+    try:
+        body = driver.find_element(By.TAG_NAME, "body").text.upper()
 
+        if (
+        "OUT OF STOCK" in body
+        or "CURRENTLY OUT OF STOCK" in body
+        or "SOLD OUT" in body
+    ):
+            print("✅ PRODUCT IS OUT OF STOCK")
+            return {"STATUS": "OUT_OF_STOCK"}
+
+    except Exception:
+        pass
     # ---------------------------------------
     # Try Multiple Ways to Open Size Chart
     # ---------------------------------------
@@ -165,27 +181,6 @@ def extract_size_chart(driver, product_type):
             print("❌ CLICK FAILED:", xpath)
             print("ERROR:", e)
             continue
-
-    # Fallback: Try general 'SIZE' elements if specific chart button wasn't found
-    if not size_chart_found:
-        print("Trying to find clickable general Size elements...")
-        try:
-            all_elements = driver.find_elements(
-                By.XPATH,
-                "//*[contains(translate(text(),'abcdefghijklmnopqrstuvwxyz','ABCDEFGHIJKLMNOPQRSTUVWXYZ'),'SIZE')]",
-            )
-            print("Possible Size Elements Found:", len(all_elements))
-            for e in all_elements:
-                try:
-                    if e.is_displayed():
-                        driver.execute_script("arguments[0].click();", e)
-                        size_chart_found = True
-                        print("Size Chart Opened via fallback element")
-                        break
-                except:
-                    pass
-        except:
-            pass
 
     # If still not found, check out-of-stock indicators
     if not size_chart_found:
@@ -305,3 +300,23 @@ def extract_size_chart(driver, product_type):
 
     print("Extracted Waist/Chest Sizes:", sizes)
     return sizes
+from selenium.webdriver.common.by import By
+
+def extract_gender(driver):
+    """
+    Detect gender from the PDP.
+    """
+
+    try:
+        page_text = driver.find_element(By.TAG_NAME, "body").text.upper()
+
+        if "WOMEN" in page_text:
+            return "WOMEN"
+
+        if "MEN" in page_text:
+            return "MEN"
+
+    except Exception as e:
+        print("Gender Detection Error:", e)
+
+    return "UNKNOWN"

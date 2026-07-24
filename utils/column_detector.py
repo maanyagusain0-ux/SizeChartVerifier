@@ -49,7 +49,17 @@ def detect_columns(df):
         ]):
 
             columns["GENDER"] = col
+        # -------------------------------
+        # LINE
+# -------------------------------
 
+        elif any(x in name for x in [
+
+         "LINE"
+
+]):
+
+         columns["LINE"] = col
         # -------------------------------
         # SUB CATEGORY
         # -------------------------------

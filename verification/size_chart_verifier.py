@@ -78,12 +78,17 @@ def compare_sizes(product_type, expected_sizes, extracted_sizes):
 
         try:
 
+            print("--------------------------------")
+            print("SIZE:", size)
+            print("Expected:", expected, type(expected))
+            print("Website :", website, type(website))
+            print("Difference:", abs(float(expected) - float(website)))
+
             if abs(float(expected) - float(website)) <= 0.01:
-
+                print("MATCH")
                 results[size] = "MATCH"
-
             else:
-
+                print("MISMATCH")
                 results[size] = "MISMATCH"
 
         except:

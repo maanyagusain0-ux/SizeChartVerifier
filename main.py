@@ -9,6 +9,7 @@ from extraction.size_chart_extractor import (
     extract_fit,
 )
 
+
 # -----------------------------------
 # Report Path
 # -----------------------------------
@@ -58,16 +59,29 @@ def generate_report(df):
 
         print("Detected Product Type :", product_type)
         gender = ""
-        
+
+# ----------------------------
+# Get Gender from Excel
+# ----------------------------
+
+# Case 1: Dataset has a GENDER column
         if "GENDER" in columns and pd.notna(row[columns["GENDER"]]):
             gender = str(row[columns["GENDER"]]).strip().upper()
-            print("Gender from Excel :", gender)
-        else:
-            print("Gender column not found in Excel")
-        
-        # Temporary fallback
+            print("Gender from GENDER column :", gender)
+
+# Case 2: Dataset has a LINE column
+        elif "LINE" in columns and pd.notna(row[columns["LINE"]]):
+            line = str(row[columns["LINE"]]).strip().upper()
+            print("LINE :", line)
+
+        if "WOMEN" in line:
+            gender = "WOMEN"
+        elif "MEN" in line:
+            gender = "MEN"
+
+# Final fallback
         if gender == "":
-           gender = "MEN"
+            gender = "MEN"
 
         print("Using Gender :", gender)
         print("RAW PRODUCT TYPE :", product_type)
@@ -131,7 +145,10 @@ def generate_report(df):
                 f"{size}-{value:g}"
                 for size, value in extracted_sizes.items()
             )
-
+            report_row["Reference Size Chart"] = ", ".join(
+               f"{size}-{value:g}"
+               for size, value in reference["SIZES"].items()
+            )
             # ---------------------------------------
             # Final Verdict
             # Ignore NOT FOUND
