@@ -97,6 +97,14 @@ def generate_report(df):
             fit = extract_fit(driver)
             print("PDP FIT :", fit)
 
+            # --- Move reference lookup BEFORE missing check ---
+            reference = get_reference_sizes(
+                product_type,
+                gender,
+                fit,
+            )
+            print("Reference :", reference)
+
             # Extract Size Chart
             extracted_sizes = extract_size_chart(driver, product_type)
 
@@ -104,24 +112,38 @@ def generate_report(df):
             print("Website Sizes:", extracted_sizes)
             print("Extracted Sizes :", extracted_sizes)
 
-            reference = get_reference_sizes(
-                product_type,
-                gender,
-                fit,
-            )
+            # ---------------------------------------
+            # Fix 1 & 3: Handle No Size Chart / Empty Output
+            # ---------------------------------------
+            if not extracted_sizes:
+                print("No size chart extracted.")
 
-            print("Reference :", reference)
+                report_row["Extraction Status"] = "SIZE CHART NOT FOUND"
+                report_row["Extracted Size Chart"] = "SIZE CHART NOT FOUND"
+                report_row["Reference Size Chart"] = ", ".join(
+                    f"{size}-{value:g}"
+                    for size, value in reference["SIZES"].items()
+                )
+                report_row["Final Size Chart Verdict"] = "NOT VERIFIED"
+
+                all_results.append(report_row)
+                continue
 
             # ---------------------------------------
             # Out Of Stock
             # ---------------------------------------
-            if extracted_sizes is None or (
+            if (
                 isinstance(extracted_sizes, dict)
                 and extracted_sizes.get("STATUS") == "OUT_OF_STOCK"
             ):
                 print("Product is Out of Stock")
 
+                report_row["Extraction Status"] = "OUT OF STOCK"
                 report_row["Extracted Size Chart"] = "OUT OF STOCK"
+                report_row["Reference Size Chart"] = ", ".join(
+                    f"{size}-{value:g}"
+                    for size, value in reference["SIZES"].items()
+                )
                 report_row["Final Size Chart Verdict"] = "Not Applicable"
 
                 all_results.append(report_row)
@@ -139,6 +161,8 @@ def generate_report(df):
             print("Website Sizes:", extracted_sizes)
             print("Comparison:", result)
 
+            report_row["Extraction Status"] = "SUCCESS"
+
             # ---------------------------------------
             # Extracted Size Chart Column
             # ---------------------------------------
@@ -152,17 +176,11 @@ def generate_report(df):
             )
 
             # ---------------------------------------
-            # Final Verdict
-            # Ignore NOT FOUND
+            # Fix 2: Refactored Final Verdict Logic
             # ---------------------------------------
-            incorrect = False
-
-            for verdict in result.values():
-                if verdict == "MISMATCH":
-                    incorrect = True
-                    break
-
-            if incorrect:
+            if "NOT FOUND" in result.values():
+                report_row["Final Size Chart Verdict"] = "NOT VERIFIED"
+            elif "MISMATCH" in result.values():
                 report_row["Final Size Chart Verdict"] = "Incorrect"
             else:
                 report_row["Final Size Chart Verdict"] = "Correct"
@@ -170,6 +188,7 @@ def generate_report(df):
         except Exception as e:
             print("ERROR :", e)
 
+            report_row["Extraction Status"] = "EXTRACTION ERROR"
             report_row["Extracted Size Chart"] = "ERROR"
             report_row["Final Size Chart Verdict"] = "ERROR"
 
