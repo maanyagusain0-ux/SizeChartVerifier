@@ -12,10 +12,10 @@ def open_product(url):
     options = Options()
     options.add_argument("--start-maximized")
 
-    service = Service(ChromeDriverManager().install())
+    from selenium.webdriver.chrome.service import Service
 
+    service = Service("/usr/bin/chromedriver")
     driver = webdriver.Chrome(service=service, options=options)
-
     driver.get(url)
 
     try:
