@@ -11,14 +11,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
 def open_product(url):
-    time.sleep(5)
-
-    print("=" * 80)
-    print("TITLE :", driver.title)
-    print("URL   :", driver.current_url)
-    print("=" * 80)
-
-    driver.save_screenshot("page_loaded.png")
     options = Options()
 
     # Headless
@@ -53,21 +45,24 @@ def open_product(url):
         service = Service("/usr/bin/chromedriver")
 
     driver = webdriver.Chrome(service=service, options=options)
-
+    
     driver.execute_script(
         "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
     )
-
+    
     driver.get(url)
+    WebDriverWait(driver, 20).until(
+            lambda d: d.execute_script("return document.readyState") == "complete"
+        )
+    time.sleep(5)
+    print("=" * 80)
+    print("TITLE :", driver.title)
+    print("URL :", driver.current_url)
+    print("=" * 80)
 
     WebDriverWait(driver, 20).until(
         lambda d: d.execute_script("return document.readyState") == "complete"
     )
-
-    print("=" * 60)
-    print("TITLE :", driver.title)
-    print("URL   :", driver.current_url)
-    print("=" * 60)
 
     return driver
 
